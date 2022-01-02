@@ -454,18 +454,32 @@ export class KeycloakService {
    * @returns
    * An observable with with the HTTP Authorization header and the current token.
    */
-  public addTokenToHeader(headers: HttpHeaders = new HttpHeaders()) {
-    return from(this.getToken()).pipe(
-      map((token) =>
-        token
-          ? headers.set(
-              this._authorizationHeaderName,
-              this._bearerPrefix + token
-            )
-          : headers
-      )
-    );
-  }
+  
+    addTokenToHeader(headers) {
+    var _this = this;
+    if (headers === void 0) { headers = new HttpHeaders(); }
+    return Observable.create((function (observer) { return tslib_1.__awaiter(_this, void 0, void 0, function () {
+      var token, error_3;
+      return tslib_1.__generator(this, function (_a) {
+        switch (_a.label) {
+          case 0:
+            _a.trys.push([0, 2, , 3]);
+            return [4, this.getToken()];
+          case 1:
+            token = _a.sent();
+            headers = headers.set(this._authorizationHeaderName, this._bearerPrefix + token);
+            observer.next(headers);
+            observer.complete();
+            return [3, 3];
+          case 2:
+            error_3 = _a.sent();
+            observer.error(error_3);
+            return [3, 3];
+          case 3: return [2];
+        }
+      });
+    }); }));
+  };
 
   /**
    * Returns the original Keycloak instance, if you need any customization that
