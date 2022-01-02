@@ -58,29 +58,24 @@ export class KeycloakBearerInterceptor implements HttpInterceptor {
    * @param req
    * @param next
    */
-  public intercept(
-    req: HttpRequest<any>,
-    next: HttpHandler
-  ): Observable<HttpEvent<any>> {
-    const { enableBearerInterceptor, excludedUrls } = this.keycloak;
-    if (!enableBearerInterceptor) {
-      return next.handle(req);
+    public intercept(req, next) {
+        const { enableBearerInterceptor, excludedUrls } = this.keycloak;
+        if (!enableBearerInterceptor) {
+            return next.handle(req);
+        }
+        const shallPass = excludedUrls.findIndex(item => this.isUrlExcluded(req, item)) > -1;
+        if (shallPass) {
+            return next.handle(req);
+        }
+      return this.keycloak.addTokenToHeader(req.headers).pipe(mergeMap((headersWithBearer => {
+        const kcReq = req.clone({ headers: headersWithBearer });
+        if (req.body !== null) {
+          req.body['origin_user'] = this.keycloak.getUsername();
+          req.body['origin_user_id'] = this.keycloak.getUserIdentity().user_id;
+        }
+        return next.handle(kcReq);
+      })));
     }
-
-    const shallPass: boolean =
-      excludedUrls.findIndex((item) => this.isUrlExcluded(req, item)) > -1;
-    if (shallPass) {
-      return next.handle(req);
-    }
-
-    return from(this.keycloak.isLoggedIn()).pipe(
-      mergeMap((loggedIn: boolean) =>
-        loggedIn
-          ? this.handleRequestWithTokenHeader(req, next)
-          : next.handle(req)
-      )
-    );
-  }
 
   /**
    * Adds the token of the current user to the Authorization header
