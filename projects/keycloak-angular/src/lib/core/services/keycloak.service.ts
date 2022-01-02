@@ -434,6 +434,27 @@ export class KeycloakService {
 
     return this._userProfile.username;
   }
+  
+  /**
+  modified part of this service
+  */
+  
+      getUserIdentity() {
+        if (!this._instance) {
+            throw new Error('User not logged in or user profile was not loaded.');
+        }
+        const u = {
+            user_id: this._instance.subject,
+            sub: this._instance.subject,
+            first_name: this._instance.profile.firstName,
+            last_name: this._instance.profile.lastName,
+            username: this._instance.profile.username,
+            email: this._instance.profile.email,
+            profile: this._instance.profile,
+            roles: this._instance.realmAccess.roles,
+        };
+        return u;
+    }
 
   /**
    * Clear authentication state, including tokens. This can be useful if application
